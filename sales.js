@@ -158,11 +158,11 @@ function recalcTotals() {
     : Math.min(discVal, subtotal);
 
   const taxable  = subtotal - discount;
-  const tax      = taxable * TAX_RATE;
+  const subtotal = total
   
   setText('cartSubtotal', `₦${fmt(subtotal)}`);
   
-  setText('cartSubtotal',    `₦${fmt(total)}`);
+  setText('cartTotal',    `₦${fmt(total)}`);
 
   calcChange();
 }
