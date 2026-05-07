@@ -8,7 +8,7 @@
 let posProducts = [];
 let cart = [];
 let currentReceipt = null;
-const TAX_RATE = 0.075;
+const TAX_RATE = 0.000;
 
 // ─── Init ───
 document.addEventListener('DOMContentLoaded', () => {
