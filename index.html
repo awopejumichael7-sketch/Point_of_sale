@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexaPOS — Login</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="login-body">
+  <div class="login-bg">
+    <div class="login-grid"></div>
+    <div class="login-orb orb1"></div>
+    <div class="login-orb orb2"></div>
+  </div>
+  <div class="login-container">
+    <div class="login-brand">
+      <div class="brand-icon"><i class="fas fa-bolt"></i></div>
+      <h1>NexaPOS</h1>
+      <p>Business Intelligence Suite</p>
+    </div>
+    <div class="login-card">
+      <h2>Welcome Back</h2>
+      <p class="login-sub">Sign in to your dashboard</p>
+      <div id="loginAlert" class="alert-error" style="display:none"></div>
+      <div class="form-group">
+        <label>Username</label>
+        <div class="input-wrap">
+          <i class="fas fa-user"></i>
+          <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="off"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="loginPassword" placeholder="Enter password"/>
+          <button class="toggle-pwd" onclick="togglePwd()"><i class="fas fa-eye" id="eyeIcon"></i></button>
+        </div>
+      </div>
+      <div class="login-hint">
+        <div class="hint-box"><strong>Admin:</strong> admin / admin123</div>
+        <div class="hint-box"><strong>Sales:</strong> sales / sales123</div>
+      </div>
+      <button class="btn-login" onclick="handleLogin()">
+        <span>Sign In</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+    <p class="login-footer">© 2025 NexaPOS. All rights reserved.</p>
+  </div>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
