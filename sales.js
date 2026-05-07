@@ -162,7 +162,7 @@ function recalcTotals() {
   
   setText('cartSubtotal', `₦${fmt(subtotal)}`);
   
-  setText('cartTotal',    `₦${fmt(total)}`);
+  setText('cartSubtotal',    `₦${fmt(total)}`);
 
   calcChange();
 }
