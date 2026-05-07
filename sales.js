@@ -161,7 +161,7 @@ function recalcTotals() {
   const tax      = taxable * TAX_RATE;
   
   setText('cartSubtotal', `₦${fmt(subtotal)}`);
-  setText('cartTax',      `₦${fmt(tax)}`);
+  
   setText('cartTotal',    `₦${fmt(total)}`);
 
   calcChange();
