@@ -159,8 +159,7 @@ function recalcTotals() {
 
   const taxable  = subtotal - discount;
   const tax      = taxable * TAX_RATE;
-  const total    = taxable + tax;
-
+  
   setText('cartSubtotal', `₦${fmt(subtotal)}`);
   setText('cartTax',      `₦${fmt(tax)}`);
   setText('cartTotal',    `₦${fmt(total)}`);
