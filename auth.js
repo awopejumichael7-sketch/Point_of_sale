@@ -33,7 +33,7 @@ function clearSession() {
 function requireAuth(allowedRoles) {
   const user = getSession();
   if (!user) {
-    window.location.href = 'login.html';
+    window.location.href = 'admin.html';
     return null;
   }
   if (allowedRoles && !allowedRoles.includes(user.role)) {
@@ -128,7 +128,7 @@ function handleLogout() {
   if (firebaseAvailable && auth) {
     auth.signOut().catch(() => {});
   }
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }
 
 // ─── Toggle Password ───
