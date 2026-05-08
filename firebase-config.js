@@ -11,15 +11,15 @@
 // <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 // <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyC_qDSpaFEItsWmD2OpFnWP8UuK8GdJ2Vc",
-    authDomain: "pointofsale-8e170.firebaseapp.com",
-    projectId: "pointofsale-8e170",
-    storageBucket: "pointofsale-8e170.firebasestorage.app",
-    messagingSenderId: "906227114724",
-    appId: "1:906227114724:web:b08f10ea3e62ed8e6882f1",
+//const firebaseConfig = {
+//  apiKey: "AIzaSyC_qDSpaFEItsWmD2OpFnWP8UuK8GdJ2Vc",
+  //  authDomain: "pointofsale-8e170.firebaseapp.com",
+  //  projectId: "pointofsale-8e170",
+//    storageBucket: "pointofsale-8e170.firebasestorage.app",
+ //   messagingSenderId: "906227114724",
+ //   appId: "1:906227114724:web:b08f10ea3e62ed8e6882f1",
     
-};
+//};
 
 // ─── Firebase State ───
 let firebaseApp = null;
