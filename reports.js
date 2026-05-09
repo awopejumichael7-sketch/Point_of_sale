@@ -7,6 +7,7 @@
 let allTransactions = [];
 let revenueChartInst = null;
 let topProductsChartInst = null;
+let deletingTxId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   const user = requireAuth(['admin']);
@@ -166,21 +167,32 @@ function renderTransactionTable(list) {
     tbody.innerHTML = '<tr><td colspan="10" class="empty-row">No transactions found</td></tr>';
     return;
   }
-  tbody.innerHTML = list.map(t => `
+  tbody.innerHTML = list.map(t => {
+    const items     = t.items || [];
+    const totalQty  = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+    const firstName = items[0]?.name || '—';
+    const productLabel = items.length > 1
+      ? `${escHtml(firstName)} <span class="muted">+${items.length - 1} more</span>`
+      : escHtml(firstName);
+    return `
     <tr>
-      <td><code>${t.receiptNo||'—'}</code></td>
+      <td>${productLabel}</td>
       <td>${escHtml(t.customer||'Walk-in')}</td>
       <td>${escHtml(t.cashier||'—')}</td>
-      <td>${t.items?.length||0}</td>
+      <td>${totalQty}</td>
       <td>₦${fmt(t.subtotal)}</td>
       <td>₦${fmt(t.tax)}</td>
       <td>₦${fmt(t.discount)}</td>
       <td><strong>₦${fmt(t.total)}</strong></td>
       <td>${new Date(t.date).toLocaleDateString()}</td>
       <td>
-        <button class="action-btn edit" onclick="viewReceipt('${t.id}')" title="View Receipt"><i class="fas fa-eye"></i></button>
+        <div class="action-btns">
+          <button class="action-btn edit" onclick="viewReceipt('${t.id}')" title="View Receipt"><i class="fas fa-eye"></i></button>
+          <button class="action-btn delete" onclick="openDeleteTxModal('${t.id}','${escHtml(t.receiptNo||t.id)}')" title="Delete Transaction"><i class="fas fa-trash"></i></button>
+        </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ─── Best Sellers ───
@@ -274,11 +286,16 @@ function printViewedReceipt() { window.print(); }
 function exportSalesReport() { exportTransactionsCSV(); }
 
 function exportTransactionsCSV() {
-  const headers = ['Receipt #','Customer','Cashier','Items','Subtotal','Tax','Discount','Total','Date'];
-  const rows = allTransactions.map(t => [
-    t.receiptNo, t.customer, t.cashier, t.items?.length||0,
-    t.subtotal, t.tax, t.discount, t.total, new Date(t.date).toLocaleString()
-  ]);
+  const headers = ['Receipt #','Product','Customer','Cashier','Items','Subtotal','Tax','Discount','Total','Date'];
+  const rows = allTransactions.map(t => {
+    const items    = t.items || [];
+    const totalQty = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+    const products = items.map(i => i.name).join(' | ');
+    return [
+      t.receiptNo, products, t.customer, t.cashier, totalQty,
+      t.subtotal, t.tax, t.discount, t.total, new Date(t.date).toLocaleString()
+    ];
+  });
   const csv = [headers,...rows].map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
@@ -289,19 +306,60 @@ function exportTransactionsCSV() {
 
 function exportTransactionsPDF() {
   const win = window.open('','_blank');
-  const rows = allTransactions.map(t => `
-    <tr><td>${t.receiptNo||''}</td><td>${t.customer||''}</td><td>${t.cashier||''}</td>
-    <td>${t.items?.length||0}</td><td>₦${fmt(t.total)}</td><td>${new Date(t.date).toLocaleDateString()}</td></tr>`).join('');
+  const rows = allTransactions.map(t => {
+    const items    = t.items || [];
+    const totalQty = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+    const products = escHtml(items.map(i => i.name).join(', '));
+    return `
+    <tr><td>${escHtml(t.receiptNo||'')}</td><td>${products}</td><td>${escHtml(t.customer||'')}</td><td>${escHtml(t.cashier||'')}</td>
+    <td>${totalQty}</td><td>₦${fmt(t.total)}</td><td>${new Date(t.date).toLocaleDateString()}</td></tr>`;
+  }).join('');
   win.document.write(`<!DOCTYPE html><html><head><title>Sales Report</title>
   <style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}
   th,td{padding:8px;border:1px solid #ddd;text-align:left}th{background:#f5f5f5}</style></head>
   <body><h1>NexaPOS — Sales Report</h1><p>Generated: ${new Date().toLocaleString()}</p>
-  <table><thead><tr><th>Receipt#</th><th>Customer</th><th>Cashier</th><th>Items</th><th>Total</th><th>Date</th></tr></thead>
+  <table><thead><tr><th>Receipt#</th><th>Product</th><th>Customer</th><th>Cashier</th><th>Items</th><th>Total</th><th>Date</th></tr></thead>
   <tbody>${rows}</tbody></table></body></html>`);
   win.document.close(); win.print();
+}
+
+// ─── Delete Transaction ───
+function openDeleteTxModal(txId, receiptNo) {
+  deletingTxId = txId;
+  const el = document.getElementById('deleteTxReceipt');
+  if (el) el.textContent = receiptNo || txId;
+  document.getElementById('deleteTxModal')?.classList.add('open');
+}
+
+function closeDeleteTxModal() {
+  document.getElementById('deleteTxModal')?.classList.remove('open');
+  deletingTxId = null;
+}
+
+async function confirmDeleteTransaction() {
+  if (!deletingTxId) return;
+  const id = deletingTxId;
+  try {
+    if (firebaseAvailable && db && !String(id).startsWith('local_')) {
+      await db.collection('transactions').doc(id).delete();
+    }
+    allTransactions = allTransactions.filter(t => t.id !== id);
+    localStorage.setItem('nexapos_transactions', JSON.stringify(allTransactions));
+    closeDeleteTxModal();
+    renderReportsSummary();
+    renderTransactionTable(allTransactions);
+    renderBestSellers(allTransactions);
+    loadRevenueChart(document.querySelector('.chart-filter .chip.active')?.textContent.toLowerCase() || 'daily');
+    renderTopProductsChart(allTransactions);
+    showToast('Transaction deleted', 'success');
+  } catch (err) {
+    console.error('Delete transaction error:', err);
+    showToast('Error deleting transaction', 'error');
+  }
 }
 
 // ─── Utilities ───
 function fmt(n) { return parseFloat(n||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
-function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+
