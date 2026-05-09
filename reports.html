@@ -120,7 +120,7 @@
         <div class="table-wrap">
           <table class="data-table">
             <thead>
-              <tr><th>Receipt #</th><th>Customer</th><th>Cashier</th><th>Items</th><th>Subtotal</th><th>Tax</th><th>Discount</th><th>Total</th><th>Date</th><th>Action</th></tr>
+              <tr><th>Product</th><th>Customer</th><th>Cashier</th><th>Items</th><th>Subtotal</th><th>Tax</th><th>Discount</th><th>Total</th><th>Date</th><th>Action</th></tr>
             </thead>
             <tbody id="transactionBody">
               <tr><td colspan="10" class="empty-row">No transactions found</td></tr>
@@ -161,6 +161,23 @@
     </div>
   </div>
 
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteTxModal">
+    <div class="modal-box small">
+      <div class="modal-header">
+        <h3>Delete Transaction</h3>
+        <button onclick="closeDeleteTxModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete transaction <strong id="deleteTxReceipt"></strong>? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeDeleteTxModal()">Cancel</button>
+        <button class="btn-danger" onclick="confirmDeleteTransaction()"><i class="fas fa-trash"></i> Delete</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script src="firebase-config.js"></script>
@@ -168,3 +185,4 @@
   <script src="reports.js"></script>
 </body>
 </html>
+
