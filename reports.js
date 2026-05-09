@@ -168,12 +168,11 @@ function renderTransactionTable(list) {
     return;
   }
   tbody.innerHTML = list.map(t => {
-    const items     = t.items || [];
-    const totalQty  = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
-    const firstName = items[0]?.name || '—';
-    const productLabel = items.length > 1
-      ? `${escHtml(firstName)} <span class="muted">+${items.length - 1} more</span>`
-      : escHtml(firstName);
+    const items    = t.items || [];
+    const totalQty = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+    const productLabel = items.length
+      ? items.map(i => `${escHtml(i.name)} ×${Number(i.qty)||0}`).join(', ')
+      : '—';
     return `
     <tr>
       <td>${productLabel}</td>
