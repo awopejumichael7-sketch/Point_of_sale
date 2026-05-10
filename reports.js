@@ -614,6 +614,49 @@ function exportTransactionsPDF() {
 
 // ─── Delete Transaction ───
 
+async function restoreInventory(items) {
+
+  if (!items.length) return;
+
+  const products = JSON.parse(localStorage.getItem('nexapos_products') || '[]');
+
+
+  for (const item of items) {
+
+    const qty = Number(item.qty) || 0;
+
+    if (!qty) continue;
+
+
+    const idx = products.findIndex(p => p.id === item.id);
+
+    if (idx > -1) {
+
+      products[idx].quantity = (Number(products[idx].quantity) || 0) + qty;
+
+      if (firebaseAvailable && db && !String(item.id).startsWith('local_')) {
+
+        try {
+
+          await db.collection('products').doc(item.id).update({ quantity: products[idx].quantity });
+
+        } catch (err) {
+
+          console.error('Restore stock error for', item.id, err);
+
+        }
+
+      }
+
+    }
+
+  }
+
+  localStorage.setItem('nexapos_products', JSON.stringify(products));
+
+}
+
+
 function openDeleteTxModal(txId, receiptNo) {
 
   deletingTxId = txId;
@@ -642,6 +685,8 @@ async function confirmDeleteTransaction() {
 
   const id = deletingTxId;
 
+  const tx = allTransactions.find(t => t.id === id);
+
   try {
 
     if (firebaseAvailable && db && !String(id).startsWith('local_')) {
@@ -649,6 +694,8 @@ async function confirmDeleteTransaction() {
       await db.collection('transactions').doc(id).delete();
 
     }
+
+    if (tx) await restoreInventory(tx.items || []);
 
     allTransactions = allTransactions.filter(t => t.id !== id);
 
