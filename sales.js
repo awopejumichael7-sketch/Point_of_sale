@@ -270,7 +270,7 @@ function buildReceiptHtml(tx) {
 
   return `
     <div class="r-header">
-      <div class="r-logo">⚡ NexaPOS</div>
+      <div class="r-logo">⚡ Redemption building and household materials store</div>
       <div class="r-sub">Sales Receipt</div>
     </div>
     <hr class="r-divider"/>
@@ -294,7 +294,7 @@ function buildReceiptHtml(tx) {
     <div class="r-footer">
       <hr class="r-divider"/>
       <p>Thank you for your purchase!</p>
-      <p>Powered by NexaPOS</p>
+      <p>Powered by Redemption building and household materials store</p>
     </div>`;
 }
 
