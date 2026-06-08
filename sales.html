@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Redemption building and household materials store — Point of Sale</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body class="app-body" data-theme="dark">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon"><i class="fas fa-bolt"></i></div>
+      <span class="brand-name">Redemption building and household materials store</span>
+      <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><i class="fas fa-th-large"></i><span>Dashboard</span></a>
+      <a href="inventory.html" class="nav-item" id="inventoryLink"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+      <a href="sales.html" class="nav-item active"><i class="fas fa-cash-register"></i><span>Point of Sale</span></a>
+      <a href="reports.html" class="nav-item" id="reportsLink"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+      <div class="nav-divider"></div>
+      <a href="index.html" class="nav-item" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebarAvatar"><i class="fas fa-user"></i></div>
+      <div class="user-info">
+        <span id="sidebarUserName">User</span>
+        <small id="sidebarUserRole">Sales Rep</small>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+      <div class="topbar-title">Point of Sale</div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="themeIcon"></i></button>
+      </div>
+    </header>
+
+    <main class="pos-layout">
+      <!-- Product Grid -->
+      <section class="pos-products">
+        <div class="pos-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="posSearch" placeholder="Search products by name or barcode…" oninput="filterPosProducts()"/>
+          <select id="posCategoryFilter" onchange="filterPosProducts()">
+            <option value="">All</option>
+            <option>Electronics</option><option>Clothing</option>
+            <option>Food & Drinks</option><option>Health & Beauty</option>
+            <option>Home & Office</option><option>Sports</option><option>Other</option>
+          </select>
+        </div>
+        <div class="product-grid" id="posProductGrid">
+          <div class="grid-loading"><div class="spinner"></div></div>
+        </div>
+      </section>
+
+      <!-- Cart Panel -->
+      <section class="pos-cart">
+        <div class="cart-header">
+          <h3><i class="fas fa-shopping-cart"></i> Current Sale</h3>
+          <button class="btn-outline small" onclick="clearCart()"><i class="fas fa-trash"></i> Clear</button>
+        </div>
+
+        <div class="cart-customer">
+          <input type="text" id="customerName" placeholder="Customer name (optional)"/>
+        </div>
+
+        <!-- Quick Add to Cart -->
+        <div class="quick-add-bar">
+          <div class="quick-add-title"><i class="fas fa-plus-circle"></i> Quick Add</div>
+          <div class="quick-add-row">
+            <div class="quick-add-search-wrap">
+              <input
+                type="text"
+                id="quickAddSearch"
+                class="quick-add-input"
+                placeholder="Search product…"
+                oninput="onQuickAddSearch(this.value)"
+                onkeydown="onQuickAddKey(event)"
+                autocomplete="off"
+              />
+              <div class="quick-add-dropdown" id="quickAddDropdown"></div>
+            </div>
+            <select id="quickAddUnit" class="quick-add-select">
+              <option value="piece">Piece</option>
+            </select>
+            <input
+              type="number"
+              id="quickAddQty"
+              class="quick-add-qty"
+              value="1"
+              min="1"
+              placeholder="Qty"
+            />
+            <button class="quick-add-btn" onclick="quickAddToCart()">
+              <i class="fas fa-cart-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="cart-items" id="cartItems">
+          <div class="cart-empty"><i class="fas fa-shopping-basket"></i><p>Cart is empty</p></div>
+        </div>
+
+        <div class="cart-totals">
+          <div class="total-row"><span>Subtotal</span><span id="cartSubtotal">₦0.00</span></div>
+          <div class="total-row">
+            <span>Discount</span>
+            <div class="discount-wrap">
+              <input type="number" id="discountVal" value="0" min="0" oninput="recalcTotals()"/>
+              <select id="discountType" onchange="recalcTotals()">
+                <option value="percent">%</option>
+                <option value="flat">₦</option>
+              </select>
+            </div>
+          </div>
+          <div class="total-row"><span>Tax (7.5%)</span><span id="cartTax">₦0.00</span></div>
+          <div class="total-row grand"><span>Total</span><span id="cartTotal">₦0.00</span></div>
+          <div class="total-row">
+            <span>Cash Received</span>
+            <input type="number" id="cashReceived" placeholder="0.00" min="0" oninput="calcChange()"/>
+          </div>
+          <div class="total-row change-row">
+            <span>Change</span>
+            <span id="cartChange" class="change-amount">₦0.00</span>
+          </div>
+        </div>
+
+        <button class="btn-checkout" onclick="processCheckout()">
+          <i class="fas fa-check-circle"></i> Complete Sale
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal-box receipt-modal">
+      <div class="modal-header">
+        <h3>Transaction Complete</h3>
+        <button onclick="closeReceipt()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="receiptContent" class="receipt-paper">
+          <!-- Dynamically filled -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeReceipt()">Close</button>
+        <button class="btn-primary" onclick="printReceipt()"><i class="fas fa-print"></i> Print Receipt</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="sales.js"></script>
+  <!-- Mobile bottom nav -->
+  <nav class="mobile-nav">
+    <a href="dashboard.html"><i class="fas fa-th-large"></i><span>Home</span></a>
+    <a href="inventory.html"><i class="fas fa-boxes"></i><span>Stock</span></a>
+    <a href="sales.html" class="active"><i class="fas fa-cash-register"></i><span>POS</span></a>
+    <a href="reports.html"><i class="fas fa-chart-bar"></i><span>Reports</span></a>
+  </nav>
+  <!-- Cart FAB for mobile -->
+  <button class="cart-fab" id="cartFab" onclick="toggleCartDrawer()" title="View Cart" aria-label="Open Cart">
+    <i class="fas fa-shopping-cart"></i>
+    <span class="cart-fab-badge" id="cartFabBadge" style="display:none">0</span>
+  </button>
+  <div class="pos-cart-backdrop" id="cartBackdrop" onclick="toggleCartDrawer()"></div>
+</body>
+</html>
